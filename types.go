@@ -9,10 +9,11 @@ const (
 )
 
 type todo struct {
-	id       int
-	name     string
-	content  string
-	priority Priority
+	id        int
+	name      string
+	content   string
+	priority  Priority
+	completed int
 }
 
 // type db struct {
