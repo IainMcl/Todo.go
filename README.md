@@ -1,6 +1,8 @@
 # Todo.go
 
-Todo app built in Go using an sqlite db
+Todo app built in Go using an sqlite db.
+
+**Still in development**
 
 ## Usage
 
@@ -20,10 +22,7 @@ Todo app built in Go using an sqlite db
 
 1. Install go
 2. Clone into a folder
-
   2.1 `mkdir todo`
-  
-  2.2 `cd todo`
-  
+  2.2 `cd todo`  
   2.3 `make build` <- Creates an executable in `/todo/bin/todo.exe`. Add this to path to use anywhere
   
