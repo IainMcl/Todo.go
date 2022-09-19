@@ -6,7 +6,7 @@ build:
 # Testing args
 ARGS = add -n "Todo name" -c "Todo content" -p 1
 run:
-	./${BINARY_NAME} ${ARGS}
+	./${BINARY_NAME} 
 
 r:
 	go run . ${ARGS}
