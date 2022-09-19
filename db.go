@@ -28,7 +28,6 @@ func createDB(tableName string) (*sql.DB, error) {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
 	// Create table
 	sqlStmt := fmt.Sprintf(`
@@ -42,9 +41,11 @@ func createDB(tableName string) (*sql.DB, error) {
 
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
+		db.Close()
 		panic(err)
 	}
 	fmt.Println("Created database: ", tableName)
+	db.Close()
 	return db, err
 }
 
@@ -52,7 +53,21 @@ func deleteDb(name string) error {
 	return os.Remove(name)
 }
 
-func deleteAll(db *sql.DB) error {
-	_, err := db.Exec("DELETE FROM todo")
+func deleteAll(dbName string) error {
+	db, err := sql.Open("sqlite3", dbName)
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Exec("DELETE FROM todo")
+	return err
+}
+
+func insertTodo(dbName string, t todo) error {
+	db, err := sql.Open("sqlite3", dbName)
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Exec("INSERT INTO todo (name, content, priority) VALUES (?, ?, ?)", t.name, t.content, t.priority)
+	db.Close()
 	return err
 }
