@@ -12,6 +12,7 @@ Todo app built in Go using an sqlite db.
   `todo list`
 3. Add a new todo
   `todo add -n "<Name of todo>" -c "<Content of todo>" -p "<Priority {1=Low,2,3=High}>"`
+  Only name is required.
 4. Complete a todo
   `todo comp -id <Id of todo>`
 5. Delete a todo
