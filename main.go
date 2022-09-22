@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func add(f *flag.FlagSet, dbName string) todo {
+func add(d DbTable, f *flag.FlagSet) todo {
 	var name string
 	var content string
 	var priority int
@@ -26,25 +26,25 @@ func add(f *flag.FlagSet, dbName string) todo {
 
 	t := todo{id: 1, name: name, content: content, priority: Priority(priority), completed: 0}
 
-	id, err := insertTodo(dbName, t)
+	id, err := d.insertTodo(t)
 	if err != nil {
 		fmt.Println("Error inserting todo: ", err)
 		os.Exit(1)
 	}
-	n := getTodoById(dbName, id)
+	n := d.getTodoById(id)
 	fmt.Println("Inserted todo: ", n)
 	return t
 }
 
-func list(f *flag.FlagSet, dbName string) {
-	todos := getAllTodos(dbName)
+func list(d DbTable, f *flag.FlagSet) {
+	todos := d.getAllTodos()
 
 	for _, t := range todos {
 		fmt.Println(t)
 	}
 }
 
-func delete(f *flag.FlagSet, dbName string) {
+func delete(d DbTable, f *flag.FlagSet) {
 
 	var id int
 	f.IntVar(&id, "id", 0, "Id of todo to delete")
@@ -55,8 +55,8 @@ func delete(f *flag.FlagSet, dbName string) {
 		os.Exit(1)
 	}
 
-	todo := getTodoById(dbName, id)
-	id, err := deleteTodoById(dbName, id)
+	todo := d.getTodoById(id)
+	id, err := d.deleteTodoById(id)
 	if err != nil {
 		fmt.Println("Error deleting todo: ", err)
 		os.Exit(1)
@@ -64,7 +64,7 @@ func delete(f *flag.FlagSet, dbName string) {
 	fmt.Println("Deleted todo: ", todo)
 }
 
-func complete(f *flag.FlagSet, dbName string) {
+func complete(d DbTable, f *flag.FlagSet) {
 	var id int
 	f.IntVar(&id, "id", 0, "Id of todo to complete")
 	f.Parse(os.Args[2:])
@@ -73,22 +73,22 @@ func complete(f *flag.FlagSet, dbName string) {
 		f.PrintDefaults()
 		os.Exit(1)
 	}
-	todo := getTodoById(dbName, id)
+	todo := d.getTodoById(id)
 	todo.completed = 1
-	updatedId, err := updateTodoById(dbName, id, todo)
+	updatedId, err := d.updateTodoById(id, todo)
 	if err != nil {
 		fmt.Println("Error completing todo: ", err)
 		os.Exit(1)
 	}
-	newTodo := getTodoById(dbName, updatedId)
+	newTodo := d.getTodoById(updatedId)
 	fmt.Println("Completed todo: ", newTodo)
 }
 
-func newDb(f *flag.FlagSet, dbName string, tableName string) {
+func newDb(d DbTable, f *flag.FlagSet) {
 
-	if _, err := os.Stat(dbName); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("Creating database: ", dbName)
-		_, err = createDB(dbName, tableName)
+	if _, err := os.Stat(d.dbName); errors.Is(err, os.ErrNotExist) {
+		fmt.Println("Creating database: ", d.dbName)
+		_, err = d.createDB()
 		if err != nil {
 			panic(err)
 		}
@@ -103,6 +103,8 @@ func main() {
 	const dbName = "todo.db"
 	const tableName = "todo"
 
+	d := DbTable{dbName: dbName, tableName: tableName}
+
 	newCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
@@ -116,14 +118,14 @@ func main() {
 
 	switch os.Args[1] {
 	case "init":
-		newDb(newCmd, dbName, tableName)
+		newDb(d, newCmd)
 	case "add":
-		add(addCmd, dbName)
+		add(d, addCmd)
 	case "list":
-		list(listCmd, dbName)
+		list(d, listCmd)
 	case "del":
-		delete(delCmd, dbName)
+		delete(d, delCmd)
 	case "comp":
-		complete(compCmd, dbName)
+		complete(d, compCmd)
 	}
 }

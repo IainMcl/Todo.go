@@ -8,6 +8,13 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type DbTable struct {
+	dbName    string
+	tableName string
+	tableType todo
+	// tableSchema map[string]string
+}
+
 func dbType(goType string) string {
 	switch goType {
 	case "int":
@@ -23,8 +30,8 @@ func dbType(goType string) string {
 	}
 }
 
-func createDB(dbName string, tableName string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbName)
+func (d DbTable) createDB() (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
@@ -38,24 +45,24 @@ func createDB(dbName string, tableName string) (*sql.DB, error) {
 			priority INTEGER,
 			completed INTEGER
 		);
-	`, tableName)
+	`, d.tableName)
 
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		db.Close()
 		panic(err)
 	}
-	fmt.Println("Created table: ", tableName)
+	fmt.Println("Created table: ", d.tableName)
 	db.Close()
 	return db, err
 }
 
-func deleteDb(name string) error {
-	return os.Remove(name)
+func (d DbTable) deleteDb() error {
+	return os.Remove(d.dbName)
 }
 
-func deleteAll(dbName string) error {
-	db, err := sql.Open("sqlite3", dbName)
+func (d DbTable) deleteAll() error {
+	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
@@ -63,8 +70,8 @@ func deleteAll(dbName string) error {
 	return err
 }
 
-func insertTodo(dbName string, t todo) (int, error) {
-	db, err := sql.Open("sqlite3", dbName)
+func (d DbTable) insertTodo(t todo) (int, error) {
+	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
@@ -77,8 +84,8 @@ func insertTodo(dbName string, t todo) (int, error) {
 	return int(id), err
 }
 
-func getAllTodos(dbName string) []todo {
-	db, err := sql.Open("sqlite3", dbName)
+func (d DbTable) getAllTodos() []todo {
+	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
@@ -100,8 +107,8 @@ func getAllTodos(dbName string) []todo {
 	return todos
 }
 
-func getTodoById(dbName string, id int) todo {
-	db, err := sql.Open("sqlite3", dbName)
+func (d DbTable) getTodoById(id int) todo {
+	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
@@ -114,8 +121,8 @@ func getTodoById(dbName string, id int) todo {
 	return t
 }
 
-func updateTodoById(dbName string, id int, t todo) (int, error) {
-	db, err := sql.Open("sqlite3", dbName)
+func (d DbTable) updateTodoById(id int, t todo) (int, error) {
+	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
@@ -128,8 +135,8 @@ func updateTodoById(dbName string, id int, t todo) (int, error) {
 	return int(newId), err
 }
 
-func deleteTodoById(dbName string, id int) (int, error) {
-	db, err := sql.Open("sqlite3", dbName)
+func (d DbTable) deleteTodoById(id int) (int, error) {
+	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
