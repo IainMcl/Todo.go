@@ -53,9 +53,10 @@ func list(d DbTable, f *flag.FlagSet) {
 		fmt.Println("Invalid status")
 	}
 
-	for _, t := range todos {
-		fmt.Println(t)
-	}
+	// for _, t := range todos {
+	// 	fmt.Println(t)
+	// }
+	NewConsolePrint().printTodos(todos)
 }
 
 func delete(d DbTable, f *flag.FlagSet) {
