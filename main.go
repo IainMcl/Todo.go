@@ -15,7 +15,7 @@ func add(d DbTable, f *flag.FlagSet) todo {
 	var priority int
 	f.StringVar(&name, "n", "", "Name of todo")
 	f.StringVar(&content, "c", "", "Content of todo")
-	f.IntVar(&priority, "p", 1, "Content of todo")
+	f.IntVar(&priority, "p", 1, "Priority of todo (1 <low> - 3 <high>)")
 
 	f.Parse(os.Args[2:])
 	if len(name) == 0 {
@@ -37,7 +37,21 @@ func add(d DbTable, f *flag.FlagSet) todo {
 }
 
 func list(d DbTable, f *flag.FlagSet) {
-	todos := d.getAllTodos()
+	var status string
+	f.StringVar(&status, "s", "incomplete", "Status of todo")
+	f.Parse(os.Args[2:])
+
+	var todos []todo
+	switch status {
+	case "incomplete":
+		todos = d.getTodosByStatus(0)
+	case "complete":
+		todos = d.getTodosByStatus(1)
+	case "all":
+		todos = d.getAllTodos()
+	default:
+		fmt.Println("Invalid status")
+	}
 
 	for _, t := range todos {
 		fmt.Println(t)
@@ -45,7 +59,6 @@ func list(d DbTable, f *flag.FlagSet) {
 }
 
 func delete(d DbTable, f *flag.FlagSet) {
-
 	var id int
 	f.IntVar(&id, "id", 0, "Id of todo to delete")
 	f.Parse(os.Args[2:])
@@ -68,6 +81,7 @@ func complete(d DbTable, f *flag.FlagSet) {
 	var id int
 	f.IntVar(&id, "id", 0, "Id of todo to complete")
 	f.Parse(os.Args[2:])
+
 	if id == 0 {
 		// Must have an id
 		f.PrintDefaults()
@@ -75,13 +89,26 @@ func complete(d DbTable, f *flag.FlagSet) {
 	}
 	todo := d.getTodoById(id)
 	todo.completed = 1
-	updatedId, err := d.updateTodoById(id, todo)
+	err := d.updateTodoById(id, todo)
 	if err != nil {
 		fmt.Println("Error completing todo: ", err)
 		os.Exit(1)
 	}
-	newTodo := d.getTodoById(updatedId)
+	newTodo := d.getTodoById(id)
 	fmt.Println("Completed todo: ", newTodo)
+}
+
+func view(d DbTable, f *flag.FlagSet) {
+	var id int
+	f.IntVar(&id, "id", 0, "Id of todo to view")
+	f.Parse(os.Args[2:])
+	if id == 0 {
+		// Must have an id
+		f.PrintDefaults()
+		os.Exit(1)
+	}
+	todo := d.getTodoById(id)
+	fmt.Println(todo)
 }
 
 func newDb(d DbTable, f *flag.FlagSet) {
@@ -99,6 +126,42 @@ func newDb(d DbTable, f *flag.FlagSet) {
 	}
 }
 
+func update(d DbTable, f *flag.FlagSet) {
+	var id int
+	var name string
+	var content string
+	var priority int
+	f.IntVar(&id, "id", 0, "Id of todo to update")
+	f.StringVar(&name, "n", "", "Name of todo")
+	f.StringVar(&content, "c", "", "Content of todo")
+	f.IntVar(&priority, "p", 1, "Priority of todo (1 <low> - 3 <high>)")
+	f.Parse(os.Args[2:])
+
+	if id == 0 {
+		// Must have an id
+		f.PrintDefaults()
+		os.Exit(1)
+	}
+
+	todo := d.getTodoById(id)
+	if len(name) > 0 {
+		todo.name = name
+	}
+	if len(content) > 0 {
+		todo.content = content
+	}
+	if priority > 0 {
+		todo.priority = Priority(priority)
+	}
+	err := d.updateTodoById(id, todo)
+	if err != nil {
+		fmt.Println("Error updating todo: ", err)
+		os.Exit(1)
+	}
+	newTodo := d.getTodoById(id)
+	fmt.Println("Updated todo: ", newTodo)
+}
+
 func main() {
 	const dbName = "todo.db"
 	const tableName = "todo"
@@ -110,9 +173,10 @@ func main() {
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
 	delCmd := flag.NewFlagSet("del", flag.ExitOnError)
 	compCmd := flag.NewFlagSet("comp", flag.ExitOnError)
+	updateCmd := flag.NewFlagSet("update", flag.ExitOnError)
 
 	if len(os.Args) < 2 {
-		fmt.Println("Expected 'init', 'add', 'del', 'comp' or 'list' subcommands")
+		fmt.Println("Expected 'init', 'add', 'del', 'comp', 'view' or 'list' subcommands")
 		return
 	}
 
@@ -127,5 +191,9 @@ func main() {
 		delete(d, delCmd)
 	case "comp":
 		complete(d, compCmd)
+	case "view":
+		view(d, compCmd)
+	case "update":
+		update(d, updateCmd)
 	}
 }

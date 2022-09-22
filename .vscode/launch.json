@@ -40,6 +40,24 @@
       "program": "${fileDirname}",
       // Command line args
       "args": ["comp", "-id", "2"],
-    }
+    },
+    {
+      "name": "Update",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${fileDirname}",
+      // Command line args
+      "args": ["update", "-id", "2", "-n", "Iain", "-c", "Here is some debug content again", "-p" , "3" ],
+    },
+    {
+      "name": "Delete",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${fileDirname}",
+      // Command line args
+      "args": ["del", "-id", "2"],
+    },
   ]
 }

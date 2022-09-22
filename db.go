@@ -89,7 +89,7 @@ func (d DbTable) getAllTodos() []todo {
 	if err != nil {
 		panic(err)
 	}
-	rows, err := db.Query("SELECT * FROM todo ORDER BY priority DESC;")
+	rows, err := db.Query("SELECT * FROM todo ORDER BY completed, priority DESC;")
 	if err != nil {
 		panic(err)
 	}
@@ -121,18 +121,17 @@ func (d DbTable) getTodoById(id int) todo {
 	return t
 }
 
-func (d DbTable) updateTodoById(id int, t todo) (int, error) {
+func (d DbTable) updateTodoById(id int, t todo) error {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
-	res, err := db.Exec("UPDATE todo SET name = ?, content = ?, priority = ?, completed = ? WHERE id = ?;", t.name, t.content, t.priority, t.completed, id)
-	db.Close()
-	newId, err := res.LastInsertId()
+	_, err = db.Exec("UPDATE todo SET name = ?, content = ?, priority = ?, completed = ? WHERE id = ?;", t.name, t.content, t.priority, t.completed, id)
 	if err != nil {
-		return 0, err
+		panic(err)
 	}
-	return int(newId), err
+	db.Close()
+	return err
 }
 
 func (d DbTable) deleteTodoById(id int) (int, error) {
@@ -147,4 +146,27 @@ func (d DbTable) deleteTodoById(id int) (int, error) {
 		return 0, err
 	}
 	return int(newId), err
+}
+
+func (d DbTable) getTodosByStatus(status int) []todo {
+	db, err := sql.Open("sqlite3", d.dbName)
+	if err != nil {
+		panic(err)
+	}
+	rows, err := db.Query("SELECT * FROM todo WHERE completed = ? ORDER BY priority DESC;", status)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var todos []todo
+	for rows.Next() {
+		var t todo
+		err = rows.Scan(&t.id, &t.name, &t.content, &t.priority, &t.completed)
+		if err != nil {
+			panic(err)
+		}
+		todos = append(todos, t)
+	}
+	db.Close()
+	return todos
 }
