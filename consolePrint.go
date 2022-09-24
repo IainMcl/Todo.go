@@ -97,12 +97,12 @@ func (c ConsolePrint) printDivider() {
 }
 
 func (c ConsolePrint) printTodo(t todo) {
-	// var check string
-	// if t.completed == 1 {
-	// 	check = "\u2713"
-	// } else {
-	// 	check = "\u2717"
-	// }
+	var check string
+	if t.completed == 1 {
+		check = "\u2713"
+	} else {
+		check = "\u2717"
+	}
 
 	contentWraps := len(t.content) / c.contentWidth
 	nameWraps := len(t.name) / c.nameWidth
@@ -114,20 +114,28 @@ func (c ConsolePrint) printTodo(t todo) {
 		nWraps = contentWraps
 	}
 
-	fmt.Println("Number of wraps: ", nWraps)
+	// fmt.Println("Number of wraps: ", nWraps)
 
 	for i := 0; i <= nWraps; i++ {
 		var nameString string
-		if i <= nameWraps {
-			nameString = t.name[i*c.nameWidth : (i+1)*c.nameWidth]
+		if i <= nameWraps && len(t.name) > c.nameWidth {
+			if c.nameWidth > len(t.name[c.nameWidth*i:]) {
+				nameString = t.name[i*c.nameWidth:]
+			} else {
+				nameString = t.name[i*c.nameWidth : (i+1)*c.nameWidth]
+			}
 		} else if i == 0 {
 			nameString = t.name
 		} else {
 			nameString = strings.Repeat(" ", c.nameWidth)
 		}
 		var contentString string
-		if i <= contentWraps {
-			contentString = t.content[i*c.contentWidth : (i+1)*c.contentWidth]
+		if i <= contentWraps && len(t.content) > c.contentWidth {
+			if c.contentWidth > len(t.content[c.contentWidth*i:]) {
+				contentString = t.content[i*c.contentWidth:]
+			} else {
+				contentString = t.content[i*c.contentWidth : (i+1)*c.contentWidth]
+			}
 		} else if i == 0 {
 			contentString = t.content
 		} else {
@@ -138,16 +146,15 @@ func (c ConsolePrint) printTodo(t todo) {
 				c.colour["white"],
 				t.id, strings.Repeat(" ", c.idWidth-len(strconv.FormatInt(int64(t.id), 10))),
 				nameString, strings.Repeat(" ", c.nameWidth-len(nameString)),
-				contentString, strings.Repeat(" ", c.contentWidth-len(contentString)),
+				contentString, strings.Repeat(" ", c.contentWidth-len(contentString)+7),
 				t.priority, strings.Repeat(" ", c.priorityWidth-len(strconv.FormatInt(int64(t.priority), 10))+1),
-				t.completed,
+				check,
 				c.colour["border"],
 				"|")
 		} else {
 			fmt.Println("|",
 				c.colour["white"],
-				strings.Repeat(" ", c.idWidth),
-				strings.Repeat(" ", c.nameWidth),
+				strings.Repeat(" ", c.idWidth+len(strconv.FormatInt(int64(t.id), 10))),
 				nameString, strings.Repeat(" ", c.nameWidth-len(nameString)),
 				contentString, strings.Repeat(" ", c.contentWidth-len(contentString)),
 				strings.Repeat(" ", c.priorityWidth),
