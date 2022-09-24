@@ -27,7 +27,7 @@ func consoleSize() (int, int, bool) {
 	}
 	// fmt.Println("Width: ", size.Width, "Height: ", size.Height)
 	correctSize := true
-	if size.Width < 80 || size.Height < 20 {
+	if size.Width < 80 || size.Height < 10 {
 		fmt.Println("Terminal size too small for nice formatting")
 		correctSize = false
 	}

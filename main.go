@@ -32,7 +32,8 @@ func add(d DbTable, f *flag.FlagSet) todo {
 		os.Exit(1)
 	}
 	n := d.getTodoById(id)
-	fmt.Println("Inserted todo: ", n)
+	fmt.Println("Inserted todo: ")
+	NewConsolePrint().printTodos([]todo{n})
 	return t
 }
 
@@ -53,9 +54,6 @@ func list(d DbTable, f *flag.FlagSet) {
 		fmt.Println("Invalid status")
 	}
 
-	// for _, t := range todos {
-	// 	fmt.Println(t)
-	// }
 	NewConsolePrint().printTodos(todos)
 }
 
@@ -88,15 +86,16 @@ func complete(d DbTable, f *flag.FlagSet) {
 		f.PrintDefaults()
 		os.Exit(1)
 	}
-	todo := d.getTodoById(id)
-	todo.completed = 1
-	err := d.updateTodoById(id, todo)
+	todoFetched := d.getTodoById(id)
+	todoFetched.completed = 1
+	err := d.updateTodoById(id, todoFetched)
 	if err != nil {
 		fmt.Println("Error completing todo: ", err)
 		os.Exit(1)
 	}
 	newTodo := d.getTodoById(id)
-	fmt.Println("Completed todo: ", newTodo)
+	fmt.Println("Completed todo: ")
+	NewConsolePrint().printTodos([]todo{newTodo})
 }
 
 func view(d DbTable, f *flag.FlagSet) {
@@ -108,12 +107,11 @@ func view(d DbTable, f *flag.FlagSet) {
 		f.PrintDefaults()
 		os.Exit(1)
 	}
-	todo := d.getTodoById(id)
-	fmt.Println(todo)
+	todoView := d.getTodoById(id)
+	NewConsolePrint().printTodos([]todo{todoView})
 }
 
 func newDb(d DbTable, f *flag.FlagSet) {
-
 	if _, err := os.Stat(d.dbName); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("Creating database: ", d.dbName)
 		_, err = d.createDB()
@@ -144,23 +142,24 @@ func update(d DbTable, f *flag.FlagSet) {
 		os.Exit(1)
 	}
 
-	todo := d.getTodoById(id)
+	todoUpdate := d.getTodoById(id)
 	if len(name) > 0 {
-		todo.name = name
+		todoUpdate.name = name
 	}
 	if len(content) > 0 {
-		todo.content = content
+		todoUpdate.content = content
 	}
 	if priority > 0 {
-		todo.priority = Priority(priority)
+		todoUpdate.priority = Priority(priority)
 	}
-	err := d.updateTodoById(id, todo)
+	err := d.updateTodoById(id, todoUpdate)
 	if err != nil {
 		fmt.Println("Error updating todo: ", err)
 		os.Exit(1)
 	}
 	newTodo := d.getTodoById(id)
-	fmt.Println("Updated todo: ", newTodo)
+	fmt.Println("Updated todo: ")
+	NewConsolePrint().printTodos([]todo{newTodo})
 }
 
 func main() {
