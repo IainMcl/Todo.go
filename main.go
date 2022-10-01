@@ -175,8 +175,9 @@ func main() {
 	compCmd := flag.NewFlagSet("comp", flag.ExitOnError)
 	updateCmd := flag.NewFlagSet("update", flag.ExitOnError)
 
+	expectedInput := "Expected 'init', 'add', 'del', 'comp', 'view', 'update', or 'list' subcommands"
 	if len(os.Args) < 2 {
-		fmt.Println("Expected 'init', 'add', 'del', 'comp', 'view' or 'list' subcommands")
+		fmt.Println(expectedInput)
 		return
 	}
 
@@ -195,5 +196,7 @@ func main() {
 		view(d, compCmd)
 	case "update":
 		update(d, updateCmd)
+	default:
+		fmt.Println(expectedInput)
 	}
 }
