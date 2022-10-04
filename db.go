@@ -76,6 +76,9 @@ func (d *DbTable) insertTodo(t todo) (int, error) {
 		panic(err)
 	}
 	res, err := db.Exec("INSERT INTO todo (name, content, priority, completed) VALUES (?, ?, ?, ?);", t.name, t.content, t.priority, t.completed)
+	if err != nil {
+		panic(err)
+	}
 	db.Close()
 	var id int64
 	if id, err = res.LastInsertId(); err != nil {
@@ -140,6 +143,9 @@ func (d *DbTable) deleteTodoById(id int) (int, error) {
 		panic(err)
 	}
 	res, err := db.Exec("DELETE FROM todo WHERE id = ?;", id)
+	if err != nil {
+		panic(err)
+	}
 	db.Close()
 	var newId int64
 	if newId, err = res.LastInsertId(); err != nil {

@@ -162,11 +162,49 @@ func update(d *DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{newTodo})
 }
 
-func main() {
-	const dbName = "todo.db"
-	const tableName = "todo"
+func configCmd(args []string, config Config) {
+	switch args[1] {
+	case "view":
+		err := config.View()
+		if err != nil {
+			fmt.Println("Error viewing config: ", err)
+			os.Exit(1)
+		}
+	case "set":
+		err := config.Set(args[2], args[3])
+		if err != nil {
+			fmt.Println("Error setting config: <", args[2], "> with value <", args[3], ">: ", err)
+			os.Exit(1)
+		}
+	case "del":
+		err := config.Delete(args[2])
+		if err != nil {
+			fmt.Println("Error deleting config <", args[2], ">: ", err)
+			os.Exit(1)
+		}
+	default:
+		fmt.Println("Invalid config command. Valid commands are: view, set, del")
+	}
+}
 
-	d := &DbTable{dbName: dbName, tableName: tableName}
+func main() {
+	// Read internal config
+	config := Config{
+		UserConfig: "",
+		ConfigFile: "~/.todo/config.json",
+		DbName:     "~/.todo/todo.db",
+		TableName:  "todo",
+	}
+
+	if config.UserConfig != "" {
+		// Read user config
+		_, err := config.ReadConfig(userConfig) // TODO: Read user config and update config with its contents. This should probably be done in the Config struct
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	d := &DbTable{dbName: config.DbName, tableName: config.TableName}
 
 	newCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
@@ -175,7 +213,7 @@ func main() {
 	compCmd := flag.NewFlagSet("comp", flag.ExitOnError)
 	updateCmd := flag.NewFlagSet("update", flag.ExitOnError)
 
-	expectedInput := "Expected 'init', 'add', 'del', 'comp', 'view', 'update', or 'list' subcommands"
+	expectedInput := "Expected 'init', 'add', 'del', 'comp', 'view', 'update', 'list', or 'config' subcommands"
 	if len(os.Args) < 2 {
 		fmt.Println(expectedInput)
 		return
@@ -196,6 +234,8 @@ func main() {
 		view(d, compCmd)
 	case "update":
 		update(d, updateCmd)
+	case "config":
+		configCmd(os.Args[2:], config)
 	default:
 		fmt.Println(expectedInput)
 	}
