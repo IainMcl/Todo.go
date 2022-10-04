@@ -1,4 +1,4 @@
-module todo
+module github.com/IainMcl/Todo.go.git
 
 go 1.19
 

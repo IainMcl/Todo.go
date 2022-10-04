@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func add(d DbTable, f *flag.FlagSet) todo {
+func add(d *DbTable, f *flag.FlagSet) todo {
 	var name string
 	var content string
 	var priority int
@@ -37,7 +37,7 @@ func add(d DbTable, f *flag.FlagSet) todo {
 	return t
 }
 
-func list(d DbTable, f *flag.FlagSet) {
+func list(d *DbTable, f *flag.FlagSet) {
 	var status string
 	f.StringVar(&status, "s", "incomplete", "Status of todo")
 	f.Parse(os.Args[2:])
@@ -57,7 +57,7 @@ func list(d DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos(todos)
 }
 
-func delete(d DbTable, f *flag.FlagSet) {
+func delete(d *DbTable, f *flag.FlagSet) {
 	var id int
 	f.IntVar(&id, "id", 0, "Id of todo to delete")
 	f.Parse(os.Args[2:])
@@ -76,7 +76,7 @@ func delete(d DbTable, f *flag.FlagSet) {
 	fmt.Println("Deleted todo: ", todo)
 }
 
-func complete(d DbTable, f *flag.FlagSet) {
+func complete(d *DbTable, f *flag.FlagSet) {
 	var id int
 	f.IntVar(&id, "id", 0, "Id of todo to complete")
 	f.Parse(os.Args[2:])
@@ -98,7 +98,7 @@ func complete(d DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{newTodo})
 }
 
-func view(d DbTable, f *flag.FlagSet) {
+func view(d *DbTable, f *flag.FlagSet) {
 	var id int
 	f.IntVar(&id, "id", 0, "Id of todo to view")
 	f.Parse(os.Args[2:])
@@ -111,7 +111,7 @@ func view(d DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{todoView})
 }
 
-func newDb(d DbTable, f *flag.FlagSet) {
+func newDb(d *DbTable, f *flag.FlagSet) {
 	if _, err := os.Stat(d.dbName); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("Creating database: ", d.dbName)
 		_, err = d.createDB()
@@ -125,7 +125,7 @@ func newDb(d DbTable, f *flag.FlagSet) {
 	}
 }
 
-func update(d DbTable, f *flag.FlagSet) {
+func update(d *DbTable, f *flag.FlagSet) {
 	var id int
 	var name string
 	var content string
@@ -166,7 +166,7 @@ func main() {
 	const dbName = "todo.db"
 	const tableName = "todo"
 
-	d := DbTable{dbName: dbName, tableName: tableName}
+	d := &DbTable{dbName: dbName, tableName: tableName}
 
 	newCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)

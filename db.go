@@ -30,7 +30,7 @@ func dbType(goType string) string {
 	}
 }
 
-func (d DbTable) createDB() (*sql.DB, error) {
+func (d *DbTable) createDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
@@ -57,11 +57,11 @@ func (d DbTable) createDB() (*sql.DB, error) {
 	return db, err
 }
 
-func (d DbTable) deleteDb() error {
+func (d *DbTable) deleteDb() error {
 	return os.Remove(d.dbName)
 }
 
-func (d DbTable) deleteAll() error {
+func (d *DbTable) deleteAll() error {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
@@ -70,7 +70,7 @@ func (d DbTable) deleteAll() error {
 	return err
 }
 
-func (d DbTable) insertTodo(t todo) (int, error) {
+func (d *DbTable) insertTodo(t todo) (int, error) {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
@@ -84,7 +84,7 @@ func (d DbTable) insertTodo(t todo) (int, error) {
 	return int(id), err
 }
 
-func (d DbTable) getAllTodos() []todo {
+func (d *DbTable) getAllTodos() []todo {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
@@ -107,7 +107,7 @@ func (d DbTable) getAllTodos() []todo {
 	return todos
 }
 
-func (d DbTable) getTodoById(id int) todo {
+func (d *DbTable) getTodoById(id int) todo {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
@@ -121,7 +121,7 @@ func (d DbTable) getTodoById(id int) todo {
 	return t
 }
 
-func (d DbTable) updateTodoById(id int, t todo) error {
+func (d *DbTable) updateTodoById(id int, t todo) error {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
@@ -134,7 +134,7 @@ func (d DbTable) updateTodoById(id int, t todo) error {
 	return err
 }
 
-func (d DbTable) deleteTodoById(id int) (int, error) {
+func (d *DbTable) deleteTodoById(id int) (int, error) {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
@@ -148,7 +148,7 @@ func (d DbTable) deleteTodoById(id int) (int, error) {
 	return int(newId), err
 }
 
-func (d DbTable) getTodosByStatus(status int) []todo {
+func (d *DbTable) getTodosByStatus(status int) []todo {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
