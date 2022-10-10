@@ -111,7 +111,17 @@ func view(d *DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{todoView})
 }
 
-func newDb(d *DbTable, f *flag.FlagSet) {
+func newDb(d *DbTable, f *flag.FlagSet, config IConfig) {
+	// Create config file if one doesn't exist
+	if _, err := os.Stat(config.GetConfigPath()); os.IsNotExist(err) {
+		fmt.Println("Creating config file: ", config.GetConfigPath())
+		err := config.CreateDefaultConfig()
+		if err != nil {
+			fmt.Println("Error creating config file: ", err)
+			os.Exit(1)
+		}
+	}
+	// Create database file if one doesn't exist
 	if _, err := os.Stat(d.dbName); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("Creating database: ", d.dbName)
 		_, err = d.createDB()
@@ -162,7 +172,7 @@ func update(d *DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{newTodo})
 }
 
-func configCmd(args []string, config Config) {
+func configCmd(args []string, config IConfig) {
 	switch args[1] {
 	case "view":
 		err := config.View()
@@ -189,22 +199,18 @@ func configCmd(args []string, config Config) {
 
 func main() {
 	// Read internal config
-	config := Config{
-		UserConfig: "",
-		ConfigFile: "~/.todo/config.json",
+	var config IConfig = &Config{
+		ConfigPath: "~/.todo/config.json",
 		DbName:     "~/.todo/todo.db",
 		TableName:  "todo",
 	}
 
-	if config.UserConfig != "" {
-		// Read user config
-		_, err := config.ReadConfig(userConfig) // TODO: Read user config and update config with its contents. This should probably be done in the Config struct
-		if err != nil {
-			panic(err)
-		}
-	}
+	// err := config.ReadConfig() // TODO: Read user config and update config with its contents. This should probably be done in the Config struct
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	d := &DbTable{dbName: config.DbName, tableName: config.TableName}
+	d := &DbTable{dbName: config.GetDbName(), tableName: config.GetTableName()}
 
 	newCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
@@ -221,7 +227,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "init":
-		newDb(d, newCmd)
+		newDb(d, newCmd, config)
 	case "add":
 		add(d, addCmd)
 	case "list":
