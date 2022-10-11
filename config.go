@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
+	"path/filepath"
 )
 
 type IConfig interface {
@@ -23,10 +25,10 @@ type Config struct {
 	ConfigPath string // file path and file name of config
 	DbName     string
 	TableName  string
-	config     map[string]string
+	config     map[string]interface{}
 }
 
-func (c *Config) GetConfig() map[string]string {
+func (c *Config) GetConfig() map[string]interface{} {
 	return c.config
 }
 
@@ -39,86 +41,141 @@ func (c *Config) GetTableName() string {
 }
 
 func (c *Config) GetConfigPath() string {
+	if c.ConfigPath == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			fmt.Println("Error getting current user: ", err)
+			os.Exit(1)
+		}
+
+		c.ConfigPath = filepath.Join(currentUser.HomeDir, "/.todo/config.json")
+	}
 	return c.ConfigPath
 }
 
-func readJson[T interface{ Config }](path string, obj *T) error {
+func readJson(path string) (map[string]interface{}, error) {
 	// Read json file
 	jsonFile, err := os.Open(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer jsonFile.Close()
+
+	// Read json file into byte array
 	byteValue, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = json.Unmarshal(byteValue, obj)
+
+	var x map[string]interface{}
+	err = json.Unmarshal(byteValue, &x)
+
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return nil
+	return x, nil
 }
 
 func (c *Config) ReadConfig() error {
-	err := readJson[Config](c.ConfigPath, c)
+	if c.ConfigPath == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			return err
+		}
+
+		c.ConfigPath = filepath.Join(currentUser.HomeDir, "/.todo/config.json")
+	}
+	json, err := readJson(c.ConfigPath)
 	if err != nil {
 		return err
 	}
+	c.ConfigPath = json["ConfigPath"].(string)
+	c.DbName = json["DbName"].(string)
+	c.TableName = json["TableName"].(string)
+	c.config = json["config"].(map[string]interface{})
 	return nil
 }
 
 func (c *Config) WriteConfig() error {
+	jsonStr, err := json.Marshal(c.config)
+	if err != nil {
+		return err
+	}
+
+	// Write the config to the file
+	err = ioutil.WriteFile(c.ConfigPath, jsonStr, 0644)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (c *Config) View() error {
-	// Read config file
-	err := c.ReadConfig()
-	if err != nil {
-		return err
-	}
+	fmt.Println("Config file: ", c.ConfigPath)
+	fmt.Println("DbName: ", c.DbName)
+	fmt.Println("TableName: ", c.TableName)
+	fmt.Println("Config: ", c.config)
 	return nil
 }
 
-func (c *Config) Print() {
-	fmt.Println("DbName: ", c.DbName)
-	fmt.Println("TableName: ", c.TableName)
-}
-
 func (c *Config) Set(key string, value string) error {
+	c.config[key] = value
 	return nil
 }
 
 func (c *Config) Delete(key string) error {
+	c.config[key] = ""
 	return nil
 }
 
 func (c *Config) CreateDefaultConfig() error {
-	// Create a config file at config.ConfigPath
-	// If the file already exists, return an error
-
-	// Create config folder
-	configFolder := c.ConfigPath[:len(c.ConfigPath)-len("config.json")] // TODO: This is a hack. Find a better way to get the folder path
-	err := os.MkdirAll(configFolder, 0755)
+	currentUser, err := user.Current()
 	if err != nil {
 		return err
 	}
-	// Create the config file
-	file, err := os.Create(c.ConfigPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
 
+	c.ConfigPath = filepath.Join(currentUser.HomeDir, "/.todo/config.json")
+	// Create this filepath and file if it does not exist
+	if _, err := os.Stat(c.ConfigPath); os.IsNotExist(err) {
+		err = os.MkdirAll(filepath.Dir(c.ConfigPath), 0755)
+		if err != nil {
+			return err
+		}
+		_, err = os.Create(c.ConfigPath)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Read the config file
+		err := c.ReadConfig()
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// escaped string config path
+	escapedConfigPath := filepath.Join(currentUser.HomeDir, "/.todo/config.json")
+	// replace / with //
+	escapedConfigPath = filepath.ToSlash(escapedConfigPath)
+	escapedDbName := filepath.Join(currentUser.HomeDir, "/.todo/todo.db")
+	// replace / with //
+	escapedDbName = filepath.ToSlash(escapedDbName)
+
+	defaultConfig := fmt.Sprintf(`{
+		"ConfigPath": "%s",
+		"DbName": "%s",
+		"TableName": "todo",
+		"config": {
+			"key1": "value1",
+			"key2": "value2"
+		}
+	}`, escapedConfigPath, escapedDbName)
 	// Write the default config to the file
-	_, err = file.WriteString(`{
-		"DbName": "~/.todo/todo.db",
-		"TableName": "todo"
-	}`)
+	err = os.WriteFile(c.ConfigPath, []byte(defaultConfig), 0644)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -111,16 +111,27 @@ func view(d *DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{todoView})
 }
 
-func newDb(d *DbTable, f *flag.FlagSet, config IConfig) {
+func newConfig(config IConfig) (IConfig, error) {
 	// Create config file if one doesn't exist
 	if _, err := os.Stat(config.GetConfigPath()); os.IsNotExist(err) {
-		fmt.Println("Creating config file: ", config.GetConfigPath())
 		err := config.CreateDefaultConfig()
+		fmt.Println("Creating config file: ", config.GetConfigPath())
 		if err != nil {
 			fmt.Println("Error creating config file: ", err)
 			os.Exit(1)
 		}
 	}
+
+	// Read config file
+	err := config.ReadConfig()
+	if err != nil {
+		fmt.Println("Error reading config file: ", err)
+		os.Exit(1)
+	}
+	return config, nil
+}
+
+func newDb(d *DbTable, f *flag.FlagSet, config IConfig) {
 	// Create database file if one doesn't exist
 	if _, err := os.Stat(d.dbName); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("Creating database: ", d.dbName)
@@ -199,16 +210,8 @@ func configCmd(args []string, config IConfig) {
 
 func main() {
 	// Read internal config
-	var config IConfig = &Config{
-		ConfigPath: "~/.todo/config.json",
-		DbName:     "~/.todo/todo.db",
-		TableName:  "todo",
-	}
-
-	// err := config.ReadConfig() // TODO: Read user config and update config with its contents. This should probably be done in the Config struct
-	// if err != nil {
-	// 	panic(err)
-	// }
+	var config IConfig
+	newConfig(config)
 
 	d := &DbTable{dbName: config.GetDbName(), tableName: config.GetTableName()}
 
