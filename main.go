@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -111,27 +112,37 @@ func view(d *DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{todoView})
 }
 
-func newConfig(config IConfig) (IConfig, error) {
-	// Create config file if one doesn't exist
-	if _, err := os.Stat(config.GetConfigPath()); os.IsNotExist(err) {
-		err := config.CreateDefaultConfig()
-		fmt.Println("Creating config file: ", config.GetConfigPath())
-		if err != nil {
-			fmt.Println("Error creating config file: ", err)
-			os.Exit(1)
-		}
+func readConfig() (*Config, error) {
+	// Read config file from default location ~/.config/todo/config.json
+	// If the config file does not exist then create it with default values
+
+	// Get home directory
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
 	}
 
-	// Read config file
-	err := config.ReadConfig()
-	if err != nil {
-		fmt.Println("Error reading config file: ", err)
-		os.Exit(1)
+	// join home directory with config file path
+	configPath := filepath.Join(home, ".todo", "config.json")
+
+	// Check if config file exists
+	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
+		// Config file does not exist
+		// Create config file with default values
+		config := NewConfig()
+		// save config file
+		err = config.WriteConfig()
+		return config, err
 	}
-	return config, nil
+
+	// Config file exists
+	// Read config file
+	config, err := ReadConfig(configPath)
+
+	return config, err
 }
 
-func newDb(d *DbTable, f *flag.FlagSet, config IConfig) {
+func newDb(d *DbTable, f *flag.FlagSet, config *Config) {
 	// Create database file if one doesn't exist
 	if _, err := os.Stat(d.dbName); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("Creating database: ", d.dbName)
@@ -183,7 +194,7 @@ func update(d *DbTable, f *flag.FlagSet) {
 	NewConsolePrint().printTodos([]todo{newTodo})
 }
 
-func configCmd(args []string, config IConfig) {
+func configCmd(args []string, config *Config) {
 	switch args[1] {
 	case "view":
 		err := config.View()
@@ -210,8 +221,10 @@ func configCmd(args []string, config IConfig) {
 
 func main() {
 	// Read internal config
-	var config IConfig
-	newConfig(config)
+	config, err := readConfig()
+	if err != nil {
+		panic(err)
+	}
 
 	d := &DbTable{dbName: config.GetDbName(), tableName: config.GetTableName()}
 

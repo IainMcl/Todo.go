@@ -77,6 +77,10 @@ func (d *DbTable) insertTodo(t todo) (int, error) {
 	}
 	res, err := db.Exec("INSERT INTO todo (name, content, priority, completed) VALUES (?, ?, ?, ?);", t.name, t.content, t.priority, t.completed)
 	if err != nil {
+		if err.Error() == "no such table: todo" {
+			fmt.Println("Database not found. Run 'todo init' to create a new database.")
+			os.Exit(1)
+		}
 		panic(err)
 	}
 	db.Close()

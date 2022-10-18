@@ -19,6 +19,7 @@ type IConfig interface {
 	GetConfig() map[string]string
 	GetTableName() string
 	CreateDefaultConfig() error
+	WriteConfig() error
 }
 
 type Config struct {
@@ -26,6 +27,18 @@ type Config struct {
 	DbName     string
 	TableName  string
 	config     map[string]interface{}
+}
+
+func NewConfig() *Config {
+	home, _ := os.UserHomeDir()
+	dotPath := filepath.Join(home, ".todo")
+
+	return &Config{
+		ConfigPath: filepath.Join(dotPath, "config.json"),
+		DbName:     filepath.Join(dotPath, "todo.db"),
+		TableName:  "todo",
+		config:     map[string]interface{}{},
+	}
 }
 
 func (c *Config) GetConfig() map[string]interface{} {
@@ -76,33 +89,47 @@ func readJson(path string) (map[string]interface{}, error) {
 	return x, nil
 }
 
-func (c *Config) ReadConfig() error {
-	if c.ConfigPath == "" {
-		currentUser, err := user.Current()
-		if err != nil {
-			return err
-		}
-
-		c.ConfigPath = filepath.Join(currentUser.HomeDir, "/.todo/config.json")
-	}
-	json, err := readJson(c.ConfigPath)
+func ReadConfig(filePath string) (*Config, error) {
+	c := NewConfig()
+	json, err := readJson(filePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	c.ConfigPath = json["ConfigPath"].(string)
-	c.DbName = json["DbName"].(string)
-	c.TableName = json["TableName"].(string)
-	c.config = json["config"].(map[string]interface{})
-	return nil
+	var found bool
+	c.ConfigPath, found = json["ConfigPath"].(string)
+	if !found {
+		c.ConfigPath = filePath
+	}
+	c.DbName, found = json["DbName"].(string)
+	if !found {
+		c.DbName = filepath.Join(filepath.Dir(filePath), "todo.db")
+	}
+	c.TableName, found = json["TableName"].(string)
+	if !found {
+		c.TableName = "todo"
+	}
+	c.config, found = json["config"].(map[string]interface{})
+	if !found {
+		c.config = map[string]interface{}{}
+	}
+	return c, nil
 }
 
 func (c *Config) WriteConfig() error {
-	jsonStr, err := json.Marshal(c.config)
+	jsonStr, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
 
 	// Write the config to the file
+	// If the path in c.ConfigPath does not exist, create it
+	if _, err := os.Stat(c.ConfigPath); os.IsNotExist(err) {
+		err := os.MkdirAll(filepath.Dir(c.ConfigPath), 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = ioutil.WriteFile(c.ConfigPath, jsonStr, 0644)
 	if err != nil {
 		return err
@@ -148,7 +175,7 @@ func (c *Config) CreateDefaultConfig() error {
 		}
 	} else {
 		// Read the config file
-		err := c.ReadConfig()
+		_, err := ReadConfig(c.ConfigPath)
 		if err != nil {
 			return err
 		}
