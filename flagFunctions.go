@@ -193,7 +193,12 @@ func update(d *DbTable, f *flag.FlagSet) {
 }
 
 func configCmd(args []string, config *Config) {
-	switch args[1] {
+	configOptions := "Invalid config command. Valid commands are: view, set, del"
+	if len(args) < 1 {
+		fmt.Print("Too few arguments\n", configOptions)
+		os.Exit(1)
+	}
+	switch args[0] {
 	case "view":
 		err := config.View()
 		if err != nil {
@@ -201,18 +206,23 @@ func configCmd(args []string, config *Config) {
 			os.Exit(1)
 		}
 	case "set":
-		err := config.Set(args[2], args[3])
+		if len(args) < 3 {
+			fmt.Println("Too few arguments for config set")
+			fmt.Println("Usage: todo config set <key> <value>")
+			os.Exit(1)
+		}
+		err := config.Set(args[1], args[2])
 		if err != nil {
-			fmt.Println("Error setting config: <", args[2], "> with value <", args[3], ">: ", err)
+			fmt.Println("Error setting config: <", args[1], "> with value <", args[2], ">: ", err)
 			os.Exit(1)
 		}
 	case "del":
-		err := config.Delete(args[2])
+		err := config.Delete(args[1])
 		if err != nil {
-			fmt.Println("Error deleting config <", args[2], ">: ", err)
+			fmt.Println("Error deleting config <", args[1], ">: ", err)
 			os.Exit(1)
 		}
 	default:
-		fmt.Println("Invalid config command. Valid commands are: view, set, del")
+		fmt.Println(configOptions)
 	}
 }

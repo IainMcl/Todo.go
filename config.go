@@ -116,7 +116,7 @@ func ReadConfig(filePath string) (*Config, error) {
 }
 
 func (c *Config) WriteConfig() error {
-	jsonStr, err := json.Marshal(c)
+	jsonStr, err := json.Marshal(c.config)
 	if err != nil {
 		return err
 	}
@@ -148,12 +148,14 @@ func (c *Config) View() error {
 
 func (c *Config) Set(key string, value string) error {
 	c.config[key] = value
-	return nil
+	err := c.WriteConfig()
+	return err
 }
 
 func (c *Config) Delete(key string) error {
 	c.config[key] = ""
-	return nil
+	err := c.WriteConfig()
+	return err
 }
 
 func (c *Config) CreateDefaultConfig() error {

@@ -59,5 +59,14 @@
       // Command line args
       "args": ["del", "-id", "2"],
     },
+    {
+      "name": "Add Configuration",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}",
+      // Command line args
+      "args": ["config", "set", "test", "value"]
+    }
   ]
 }
