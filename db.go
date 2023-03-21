@@ -158,6 +158,20 @@ func (d *DbTable) deleteTodoById(id int) (int, error) {
 	return int(newId), err
 }
 
+func (d *DbTable) getTodosCountByStatus(status int) int {
+	db, err := sql.Open("sqlite3", d.dbName)
+	if err != nil {
+		panic(err)
+	}
+	var count int
+	err = db.QueryRow("SELECT COUNT(*) FROM todo WHERE completed = ?;", status).Scan(&count)
+	if err != nil {
+		panic(err)
+	}
+	db.Close()
+	return count
+}
+
 func (d *DbTable) getTodosCount() int {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
