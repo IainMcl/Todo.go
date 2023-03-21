@@ -91,12 +91,12 @@ func (d *DbTable) insertTodo(t todo) (int, error) {
 	return int(id), err
 }
 
-func (d *DbTable) getAllTodos() []todo {
+func (d *DbTable) getAllTodos(limit int) []todo {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
-	rows, err := db.Query("SELECT * FROM todo ORDER BY completed, priority DESC;")
+	rows, err := db.Query("SELECT * FROM todo ORDER BY completed, priority DESC LIMIT ?;", limit)
 	if err != nil {
 		panic(err)
 	}
@@ -158,12 +158,26 @@ func (d *DbTable) deleteTodoById(id int) (int, error) {
 	return int(newId), err
 }
 
-func (d *DbTable) getTodosByStatus(status int) []todo {
+func (d *DbTable) getTodosCount() int {
 	db, err := sql.Open("sqlite3", d.dbName)
 	if err != nil {
 		panic(err)
 	}
-	rows, err := db.Query("SELECT * FROM todo WHERE completed = ? ORDER BY priority DESC;", status)
+	var count int
+	err = db.QueryRow("SELECT COUNT(*) FROM todo;").Scan(&count)
+	if err != nil {
+		panic(err)
+	}
+	db.Close()
+	return count
+}
+
+func (d *DbTable) getTodosByStatus(status int, limit int) []todo {
+	db, err := sql.Open("sqlite3", d.dbName)
+	if err != nil {
+		panic(err)
+	}
+	rows, err := db.Query("SELECT * FROM todo WHERE completed = ? ORDER BY priority DESC LIMIT ?;", status, limit)
 	if err != nil {
 		panic(err)
 	}

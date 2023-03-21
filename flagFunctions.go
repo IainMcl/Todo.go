@@ -38,22 +38,29 @@ func add(d *DbTable, f *flag.FlagSet) todo {
 
 func list(d *DbTable, f *flag.FlagSet) {
 	var status string
+	var limit int
 	f.StringVar(&status, "s", "incomplete", "Status of todo")
+	f.IntVar(&limit, "l", 10, "Limit number of todos to return")
 	f.Parse(os.Args[2:])
 
 	var todos []todo
 	switch status {
 	case "incomplete":
-		todos = d.getTodosByStatus(0)
+		todos = d.getTodosByStatus(0, limit)
 	case "complete":
-		todos = d.getTodosByStatus(1)
+		todos = d.getTodosByStatus(1, limit)
 	case "all":
-		todos = d.getAllTodos()
+		todos = d.getAllTodos(limit)
 	default:
 		fmt.Println("Invalid status")
 	}
 
 	NewConsolePrint().printTodos(todos)
+	countTodos := d.getTodosCount()
+	returnedTodos := len(todos)
+	if returnedTodos < countTodos {
+		fmt.Printf("Showing %d of %d todos", returnedTodos, countTodos)
+	}
 }
 
 func delete(d *DbTable, f *flag.FlagSet) {
