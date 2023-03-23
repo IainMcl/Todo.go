@@ -24,7 +24,7 @@ func main() {
 	compCmd := flag.NewFlagSet("comp", flag.ExitOnError)
 	updateCmd := flag.NewFlagSet("update", flag.ExitOnError)
 
-	expectedInput := "Expected 'init', 'add', 'del', 'comp', 'view', 'update', 'list', or 'config' subcommands"
+	expectedInput := "Expected 'init', 'add', 'del', 'comp', 'view', 'update', 'list', 'help', or 'config' subcommands"
 
 	inputHelp :=
 		`Usage of todo:
