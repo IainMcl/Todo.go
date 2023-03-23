@@ -16,7 +16,7 @@ type ConsolePrint struct {
 	contentWidth   int
 	priorityWidth  int
 	completedWidth int
-	colour         map[string]string
+	color          map[string]string
 	prettyPrint    bool
 }
 
@@ -52,7 +52,7 @@ func NewConsolePrint() *ConsolePrint {
 	return &ConsolePrint{
 		width:  w,
 		height: h,
-		colour: map[string]string{
+		color: map[string]string{
 			"border":    "\033[34m",
 			"error":     "\033[31m",
 			"warning":   "\033[33m",
@@ -79,29 +79,29 @@ func (c ConsolePrint) printHeader() {
 	// Name and content should wrap to next line if they are too long
 	// Print the column names for the table
 	fmt.Print("| ",
-		c.colour["white"],
-		c.colour["bold"],
+		c.color["white"],
+		c.color["bold"],
 		"ID", strings.Repeat(" ", c.idWidth),
 		"Name", strings.Repeat(" ", c.nameWidth-4),
 		"Content", strings.Repeat(" ", c.contentWidth-7),
 		"Priority", strings.Repeat(" ", c.priorityWidth-8),
 		"Completed",
-		c.colour["normal"],
-		c.colour["border"],
+		c.color["normal"],
+		c.color["border"],
 		" |\n")
 	c.printHeaderDivider()
 }
 
 func (c ConsolePrint) printHeaderDivider() {
-	fmt.Println(c.colour["border"], strings.Repeat("=", c.width-2))
+	fmt.Println(c.color["border"], strings.Repeat("=", c.width-2))
 }
 
 func (c ConsolePrint) printFooter() {
-	fmt.Println(c.colour["border"], strings.Repeat("=", c.width-2))
+	fmt.Println(c.color["border"], strings.Repeat("=", c.width-2))
 }
 
 func (c ConsolePrint) printDivider() {
-	fmt.Println(c.colour["border"], strings.Repeat("-", c.width-2))
+	fmt.Println(c.color["border"], strings.Repeat("-", c.width-2))
 }
 
 func getLineContent(content string, width int, lineNumber int) string {
@@ -148,31 +148,31 @@ func (c ConsolePrint) printTodo(t todo) {
 
 		if i == 0 {
 			fmt.Print("| ",
-				c.colour["white"],
+				c.color["white"],
 				t.id, strings.Repeat(" ", c.idWidth-len(strconv.FormatInt(int64(t.id), 10))+2),
 				nameString, strings.Repeat(" ", c.nameWidth-len(nameString)),
 				contentString, strings.Repeat(" ", c.contentWidth-len(contentString)),
 				strings.Repeat(" ", len("priority")),
 				t.priority, strings.Repeat(" ", c.priorityWidth-len(strconv.FormatInt(int64(t.priority), 10))),
 				check,
-				c.colour["border"],
+				c.color["border"],
 				" |")
 		} else {
 			fmt.Print("| ",
-				c.colour["white"],
+				c.color["white"],
 				strings.Repeat(" ", c.idWidth+2),
 				nameString, strings.Repeat(" ", c.nameWidth-len(nameString)),
 				contentString, strings.Repeat(" ", c.contentWidth-len(contentString)),
 				strings.Repeat(" ", c.priorityWidth),
 				strings.Repeat(" ", c.completedWidth-1),
-				c.colour["border"],
+				c.color["border"],
 				" |")
 		}
 	}
 }
 
-func (c ConsolePrint) resetColour() {
-	fmt.Println(c.colour["null"])
+func (c ConsolePrint) resetColor() {
+	fmt.Println(c.color["null"])
 }
 
 func (c ConsolePrint) printTodos(todos []todo) {
@@ -187,5 +187,5 @@ func (c ConsolePrint) printTodos(todos []todo) {
 		c.printTodo(t)
 		c.printDivider()
 	}
-	c.resetColour()
+	c.resetColor()
 }
