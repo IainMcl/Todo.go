@@ -33,4 +33,15 @@ Todo app built in Go using an sqlite db.
 2. Set up sqlite database and config `todo init`
 3. Create a todo
 ![create todo](./Images/todo_add.png)
+4. List all todos
+![list all todos](./Images/todo_list.png)
+5. Complete a todo
+![Complete todo](./Images/completed_todo.png)
+6. Update a todo
+![Update todo](./Images/update_todo.png)
+
+Get stuck? Check the help
+![help](./Images/todo_help.png)
+or 
+![list help](./Images/list_help.png)
 
