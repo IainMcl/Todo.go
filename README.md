@@ -30,8 +30,14 @@ Todo app built in Go using an sqlite db.
 ## Example
 
 1. Add `todo.exe` to path
-2. Set up sqlite database and config `todo init`
-3. Create a todo
+2. Set up sqlite database and config 
+```
+todo init
+```
+4. Create a todo
+```
+todo add -n "<name>" -c "<content>" -p <priority>
+```
 ![create todo](./Images/todo_add.png)
 4. List all todos
 ![list all todos](./Images/todo_list.png)
