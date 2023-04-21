@@ -35,7 +35,7 @@ func (d *DbTable) createDB() (*sql.DB, error) {
 	if err != nil {
 		panic(err)
 	}
-
+    
 	// Create table
 	sqlStmt := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %v (
