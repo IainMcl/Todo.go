@@ -41,7 +41,10 @@ Todo app built in Go using an sqlite db.
 ![Update todo](./Images/update_todo.png)
 
 Get stuck? Check the help
+
 ![help](./Images/todo_help.png)
+
 or 
+
 ![list help](./Images/list_help.png)
 
